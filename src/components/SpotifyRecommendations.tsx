@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from 'react';
-
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./ui/table";
 interface Track {
   id: string;
   name: string;
@@ -16,12 +23,14 @@ interface SpotifyRecommendationsProps {
 
 const SpotifyRecommendations = ({ accessToken, topTrackIds, onAnalyzeClick, spotifyParams }: SpotifyRecommendationsProps) => {
   const [recommendations, setRecommendations] = useState<Track[]>([]);
+  const [isFetched, setIsFetched] = useState(false); // New state to track if fetch has happened
 
   useEffect(() => {
-    if (onAnalyzeClick && accessToken && Object.keys(spotifyParams).length > 0) {
+    if (onAnalyzeClick && accessToken && Object.keys(spotifyParams).length > 0 && !isFetched) {
       fetchRecommendations();
+      setIsFetched(true); // Set to true after fetching
     }
-  }, [onAnalyzeClick, accessToken, spotifyParams]);
+  }, [onAnalyzeClick, accessToken, spotifyParams, isFetched]); // Add isFetched as a dependency
 
   const fetchRecommendations = async () => {
     const queryParameters = new URLSearchParams({
@@ -53,14 +62,22 @@ const SpotifyRecommendations = ({ accessToken, topTrackIds, onAnalyzeClick, spot
   };
 
   return (
-    <div>
+    <Table>
+    <TableHeader>
+      <TableRow>
+        <TableHead>Track Name</TableHead>
+        <TableHead>Artists</TableHead>
+      </TableRow>
+    </TableHeader>
+    <TableBody>
       {recommendations.map((track) => (
-        <div key={track.id}>
-          <p>{track.name} by {track.artists.map((artist) => artist.name).join(', ')}</p>
-          {/* Display other track details as needed */}
-        </div>
+        <TableRow key={track.id}>
+          <TableCell>{track.name}</TableCell>
+          <TableCell>{track.artists.map(artist => artist.name).join(', ')}</TableCell>
+        </TableRow>
       ))}
-    </div>
+    </TableBody>
+  </Table>
   );
 };
 

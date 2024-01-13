@@ -1,8 +1,13 @@
 // src/components/PhotoUpload.tsx
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
+import { Badge } from "./ui/badge"
+import { Button } from "./ui/button"
+import { Loader2 } from "lucide-react";
 
-export const PhotoUpload = ({ onImageUpload, analysisResult, userProfile }: { onImageUpload: (base64: string) => void, analysisResult: any, userProfile: any }) => {
+export const PhotoUpload = ({ onImageUpload, analysisResult, userProfile  }: { onImageUpload: (base64: string) => void, analysisResult: any, userProfile: any }) => {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const navigate = useNavigate();
 
@@ -31,23 +36,37 @@ export const PhotoUpload = ({ onImageUpload, analysisResult, userProfile }: { on
     reader.readAsDataURL(file);
   });
 
-  useEffect(() => {
-    // Navigate to the recommendations page once analysisResult is available
-    if (analysisResult) {
-      navigate('/recommendations');
-    }
-  }, [analysisResult, navigate]);
+
 
 
   return (
-    <div>
-      {userProfile && <p>Logged in as {userProfile.email}</p>}
-      <input type="file" onChange={handleFileChange} accept="image/*" />
-      {selectedFile && <button onClick={handleUpload}>Analyze Image</button>}
-      {analysisResult && <div>
-        <h3>Image Analysis Result:</h3>
-        <p>{JSON.stringify(analysisResult, null, 2)}</p>
-      </div>}
-    </div>
+  <div className="flex flex-col items-center justify-center min-h-screen dark:bg-gray-800 p-4">
+    {userProfile && (
+        <Badge className="mb-4">
+            Logged in as {userProfile.display_name}
+        </Badge>
+    )}
+        <div className="file-upload mb-4">
+                <Label htmlFor="photo-upload" className="block text-lg font-medium text-gray-700 dark:text-gray-300">
+                    Upload Photo
+                </Label>
+                <Input 
+                    id="photo-upload" 
+                    type="file" 
+                    onChange={handleFileChange} 
+                    accept="image/*" 
+                    className="mt-2 block w-full text-sm text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-630 cursor-pointer"
+                />
+          </div>
+    {selectedFile && (
+        <Button 
+            onClick={handleUpload} 
+            className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded mb-4"
+        >
+            Analyze Image
+        </Button>
+    )}
+    
+  </div>
   );
 };

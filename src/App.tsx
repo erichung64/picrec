@@ -98,13 +98,6 @@ const App = () => {
     }
   };
 
-  useEffect(() => {
-    if (accessToken) {
-      fetchUserProfile(accessToken);
-      fetchTopTracks(accessToken); // Fetch top tracks here
-    }
-  }, [accessToken]);
-
   const handleImageUpload = async (base64Image: string) => {
     console.log("handleImageUpload called");
 
@@ -210,27 +203,39 @@ const App = () => {
     return params;
   };  
 
+  useEffect(() => {
+    if (accessToken) {
+      fetchUserProfile(accessToken);
+      fetchTopTracks(accessToken); // Fetch top tracks here
+    }
+  }, [accessToken]);
+
   
   return (
-    <Router>
+<Router>
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/callback" element={<Profile accessToken={accessToken} />} />
         <Route path="/photo-upload" element={
-          <PhotoUpload 
-            onImageUpload={handleImageUpload} 
-            analysisResult={imageAnalysis} 
-            userProfile={userProfile} 
-          />
+          <div className="container mx-auto px-4">
+            <PhotoUpload 
+              onImageUpload={handleImageUpload} 
+              analysisResult={imageAnalysis} 
+              userProfile={userProfile} 
+            />
+            {onAnalyzeClick && (
+              <div className="transition-opacity duration-500 ease-in-out mt-8">
+                <SpotifyRecommendations 
+                  accessToken={accessToken} 
+                  topTrackIds={topTracks.map(track => track.id)}
+                  onAnalyzeClick={onAnalyzeClick}
+                  spotifyParams={spotifyParams}
+                />
+              </div>
+            )}
+          </div>
         } />
-        <Route path="/recommendations" element={
-          <SpotifyRecommendations 
-            accessToken={accessToken}
-            topTrackIds={topTracks.map(track => track.id)}
-            onAnalyzeClick={onAnalyzeClick}
-            spotifyParams={spotifyParams}
-          />
-        } />
+        {/* Other routes... */}
       </Routes>
     </Router>
   );
