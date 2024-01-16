@@ -4,7 +4,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { Login } from './components/Login';
 import { Profile } from './components/Profile';
 import { PhotoUpload } from './components/PhotoUpload';
-import { fetchImageAnalysis } from './apiService';
+import  { fetchImageAnalysis } from './apiService';
 import SpotifyRecommendations from './components/SpotifyRecommendations';
 import axios from 'axios';
 import qs from 'qs';
@@ -101,13 +101,13 @@ const App = () => {
   const handleImageUpload = async (base64Image: string) => {
     console.log("handleImageUpload called");
 
-    const analysis = await fetchImageAnalysis(base64Image);
-    console.log("GPT analysis response:", analysis);
+    const analysis = await fetchImageAnalysis(base64Image); 
+    console.log("AI analysis response:", analysis);
 
     setImageAnalysis(analysis);
     // Parse the GPT response to get Spotify parameters
     if (analysis) {
-      const gptResponse = analysis.choices[0].message.content;
+      const gptResponse = analysis//.choices[0].message.content;
       const parsedParams = parseGptResponse(gptResponse);
       console.log('Raw GPT Response:', gptResponse);
       console.log('Parsed Parameters:', parsedParams);
