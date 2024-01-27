@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+
+import React, { useEffect, useState, useRef } from 'react';
 import {
   Table,
   TableBody,
@@ -7,6 +8,8 @@ import {
   TableHeader,
   TableRow,
 } from "./ui/table";
+import { Loader } from 'lucide-react';
+
 interface Track {
   id: string;
   name: string;
@@ -19,65 +22,71 @@ interface SpotifyRecommendationsProps {
   topTrackIds: string[];
   onAnalyzeClick: boolean;
   spotifyParams: Record<string, string | string[]>; // Parameters including genres as array
+  isLoading: boolean;
 }
 
-const SpotifyRecommendations = ({ accessToken, topTrackIds, onAnalyzeClick, spotifyParams }: SpotifyRecommendationsProps) => {
+const SpotifyRecommendations = ({ accessToken, topTrackIds, onAnalyzeClick, spotifyParams, isLoading }: SpotifyRecommendationsProps) => {
   const [recommendations, setRecommendations] = useState<Track[]>([]);
-  const [isFetched, setIsFetched] = useState(false); // New state to track if fetch has happened
+  const recommendationsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (onAnalyzeClick && accessToken && Object.keys(spotifyParams).length > 0 && !isFetched) {
-      fetchRecommendations();
-      setIsFetched(true); // Set to true after fetching
-    }
-  }, [onAnalyzeClick, accessToken, spotifyParams, isFetched]); // Add isFetched as a dependency
+    async function fetchRecommendations() {
+      const queryParameters = new URLSearchParams({
+        seed_tracks: topTrackIds.join(','),
+        // ...add other query parameters...
+      });
 
-  const fetchRecommendations = async () => {
-    const queryParameters = new URLSearchParams({
-      seed_tracks: topTrackIds.join(','),
-    });
+      const url = `https://api.spotify.com/v1/recommendations?${queryParameters}`;
 
-    // Add other parameters and handle genres separately
-    for (const [key, value] of Object.entries(spotifyParams)) {
-      if (value !== 'N/A') {
-        if (key === 'genres' && Array.isArray(value)) {
-          queryParameters.set(key, value.join(','));
-        } else {
-          queryParameters.set(key, value as string);
-        }
+      try {
+        const response = await fetch(url, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        const data = await response.json();
+        setRecommendations(data.tracks);
+      } catch (error) {
+        console.error('Error fetching recommendations:', error);
       }
     }
 
-    const url = `https://api.spotify.com/v1/recommendations?${queryParameters}`;
-    console.log(url); // Log the URL for debugging
-    try {
-      const response = await fetch(url, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      const data = await response.json();
-      setRecommendations(data.tracks);
-    } catch (error) {
-      console.error('Error fetching recommendations:', error);
+    if (onAnalyzeClick && accessToken && !recommendations.length) {
+      fetchRecommendations();
     }
-  };
+  }, [onAnalyzeClick, accessToken, topTrackIds, spotifyParams]);
+
+  useEffect(() => {
+    if (recommendations.length > 0 && recommendationsRef.current) {
+      recommendationsRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [recommendations]);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center">
+        <Loader className="animate-spin" />
+      </div>
+    );
+  }
 
   return (
-    <Table>
-    <TableHeader>
-      <TableRow>
-        <TableHead>Track Name</TableHead>
-        <TableHead>Artists</TableHead>
-      </TableRow>
-    </TableHeader>
-    <TableBody>
-      {recommendations.map((track) => (
-        <TableRow key={track.id}>
-          <TableCell>{track.name}</TableCell>
-          <TableCell>{track.artists.map(artist => artist.name).join(', ')}</TableCell>
-        </TableRow>
-      ))}
-    </TableBody>
-  </Table>
+    <div ref={recommendationsRef}>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Track Name</TableHead>
+            <TableHead>Artists</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {recommendations.map((track) => (
+            <TableRow key={track.id}>
+              <TableCell>{track.name}</TableCell>
+              <TableCell>{track.artists.map(artist => artist.name).join(', ')}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 };
 

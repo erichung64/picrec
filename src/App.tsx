@@ -6,8 +6,8 @@ import { Profile } from './components/Profile';
 import { PhotoUpload } from './components/PhotoUpload';
 import  { fetchImageAnalysis } from './apiService';
 import SpotifyRecommendations from './components/SpotifyRecommendations';
-import axios from 'axios';
 import qs from 'qs';
+import axios from 'axios';
 
 interface Track {
   id: string;
@@ -22,7 +22,8 @@ const App = () => {
   const [topTracks, setTopTracks] = useState<Track[]>([]);
   const [onAnalyzeClick, setOnAnalyzeClick] = useState(false);
   const [spotifyParams, setSpotifyParams] = useState<Record<string, string | string[]>>({});
-
+  const [isSpotifyLoading, setIsSpotifyLoading] = useState(false);
+  console.log("isSpotifyLoading", isSpotifyLoading);
   useEffect(() => {
     const code = new URLSearchParams(window.location.search).get('code');
     if (code) {
@@ -99,20 +100,20 @@ const App = () => {
   };
 
   const handleImageUpload = async (base64Image: string) => {
-    console.log("handleImageUpload called");
-
+    setIsSpotifyLoading(true); // Start loading
     const analysis = await fetchImageAnalysis(base64Image); 
     console.log("AI analysis response:", analysis);
 
     setImageAnalysis(analysis);
     // Parse the GPT response to get Spotify parameters
     if (analysis) {
-      const gptResponse = analysis//.choices[0].message.content;
+      const gptResponse = analysis.choices[0].message.content;
       const parsedParams = parseGptResponse(gptResponse);
       console.log('Raw GPT Response:', gptResponse);
       console.log('Parsed Parameters:', parsedParams);
 
       setSpotifyParams(parsedParams);
+      setIsSpotifyLoading(false); // End loading
     }
 
     setOnAnalyzeClick(true); 
@@ -217,11 +218,12 @@ const App = () => {
         <Route path="/" element={<Login />} />
         <Route path="/callback" element={<Profile accessToken={accessToken} />} />
         <Route path="/photo-upload" element={
-          <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4">
             <PhotoUpload 
               onImageUpload={handleImageUpload} 
               analysisResult={imageAnalysis} 
-              userProfile={userProfile} 
+              userProfile={userProfile}
+              isSpotifyLoading={isSpotifyLoading} // Pass this prop
             />
             {onAnalyzeClick && (
               <div className="transition-opacity duration-500 ease-in-out mt-8">
@@ -230,6 +232,7 @@ const App = () => {
                   topTrackIds={topTracks.map(track => track.id)}
                   onAnalyzeClick={onAnalyzeClick}
                   spotifyParams={spotifyParams}
+                  isLoading={isSpotifyLoading} // Pass the loading state to SpotifyRecommendations
                 />
               </div>
             )}

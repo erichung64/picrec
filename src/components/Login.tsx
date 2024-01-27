@@ -15,7 +15,7 @@ export const Login = () => {
   };
 
   return (
-    <div className="flex flex-col justify-center items-center h-screen bg-gray-100 dark:bg-gray-800">
+    <div className="flex flex-col justify-center items-center h-screen bg-white dark:bg-gray-800">
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold text-gray-800 dark:text-gray-100 mb-2">ShutterSound</h1>
         <p className="text-md text-gray-600 dark:text-gray-300">
